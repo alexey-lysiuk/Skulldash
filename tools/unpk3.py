@@ -18,7 +18,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import io
 import os
+import struct
 import sys
 import shutil
 import zipfile
@@ -95,6 +97,32 @@ def _detect_format(name, data):
         return 'lmp'
 
 
+def _is_doompic(data):
+    pic = io.BytesIO(data)
+
+    try:
+        # validate header
+        width, height, left, top = struct.unpack('<2H2h', pic.read(8))
+        limit = 2048  # guess value
+
+        if width > limit or height > limit or left > limit or top > limit:
+            return False
+
+        # validate columns data
+        data_size = len(data)
+
+        for i in range(width):
+            offset = struct.unpack('<I', pic.read(4))
+
+            if data_size <= offset[0]:
+                return False
+
+        return True
+
+    except:
+        return False
+
+
 def _process_wad(pk3, entry, outpath):
     def _extract_lumps(subpath=''):
         path = outpath + '/'
@@ -112,14 +140,19 @@ def _process_wad(pk3, entry, outpath):
 
             if has_subpath:
                 filename = path + filename
-            elif 'mid' == ext or 'mus' == ext or 'xm' == ext:
-                filename = path + 'music/' + filename
-            elif 'ogg' == ext or 'wav' == ext:
-                filename = path + 'sounds/' + filename
-            elif 'png' == ext:
-                filename = path + 'graphics/' + filename
             else:
-                filename = path + filename
+                format_subpath = ''
+
+                if 'png' == ext or 'jpg' == ext:
+                    format_subpath = 'graphics/'
+                elif 'mid' == ext or 'mus' == ext or 'xm' == ext:
+                    format_subpath = 'music/'
+                elif 'ogg' == ext or 'wav' == ext:
+                    format_subpath = 'sounds/'
+                elif 'lmp' == ext and _is_doompic(lump.data):
+                    format_subpath = 'graphics/'
+
+                filename = path + format_subpath + filename
 
             if os.path.exists(filename):
                 if 'txt' == ext:
