@@ -28,6 +28,10 @@ import zipfile
 import doomwad
 
 
+if sys.hexversion < 0x3000000:
+    range = xrange
+
+
 def _prepare_outdir(path):
     # TODO: simplifies debugging, remove this later!
     try:
@@ -111,7 +115,7 @@ def _is_doompic(data):
         # validate columns data
         data_size = len(data)
 
-        for i in range(width):
+        for _ in range(width):
             offset = struct.unpack('<I', pic.read(4))
 
             if data_size <= offset[0]:
