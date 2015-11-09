@@ -199,6 +199,8 @@ def _process_wad(pk3, entry, outpath):
             _extract_lumps('textures')
         elif namespace.endswith('F_START'):
             _extract_lumps('flats')
+        elif namespace.endswith('P_START'):
+            _extract_lumps('patches')
         elif namespace.endswith('S_START'):
             _extract_lumps('sprites')
         # TODO: other namespaces
