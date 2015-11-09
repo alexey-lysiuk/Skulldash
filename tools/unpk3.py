@@ -278,24 +278,27 @@ def _process_wad(pk3, entry, outpath):
     if textures:
         _append_text(outpath + '/textures.txt', textures)
 
+    PREFIX_TO_SUBDIR = (
+        ('A', 'acs'),
+        ('F', 'flats'),
+        ('P', 'patches'),
+        ('S', 'sprites'),
+        ('TX', 'textures'),
+        # TODO: other namespaces
+    )
+
     for namespace in wad.namespaces():
         lumps = wad.namespacelumps(namespace)
 
         if 0 == len(namespace):  # global namespace
             _extract_lumps()
-        elif 'A_START' == namespace:
-            _extract_lumps('acs')
-        elif 'TX_START' == namespace:
-            _extract_lumps('textures')
-        elif namespace.endswith('F_START'):
-            _extract_lumps('flats')
-        elif namespace.endswith('P_START'):
-            _extract_lumps('patches')
-        elif namespace.endswith('S_START'):
-            _extract_lumps('sprites')
-        # TODO: other namespaces
         elif not namespace.endswith('_START'):
             _save_map_wad()
+        else:
+            for p2s in PREFIX_TO_SUBDIR:
+                if namespace.endswith(p2s[0] + '_START'):
+                    _extract_lumps(p2s[1])
+                    break
 
 
 def main():
