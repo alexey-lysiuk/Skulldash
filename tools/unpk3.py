@@ -127,7 +127,97 @@ def _is_doompic(data):
         return False
 
 
+def _load_pnames(data):
+    pnames = io.BytesIO(data)
+
+    count = struct.unpack('<I', pnames.read(4))[0]
+    patches = []
+
+    for _ in range(count):
+        # read patch name and strip null character(s) with possible junk in unused bytes
+        patch = struct.unpack('8s', pnames.read(8))
+        patch = patch[0].split('\x00')[0]
+        patches.append(patch)
+
+    return patches
+
+
+def _load_texturex(data, patches, nulltex):
+    textures = io.BytesIO(data)
+
+    count = struct.unpack('<I', textures.read(4))[0]
+    offsets = []
+
+    for _ in range(count):
+        offset = struct.unpack('<I', textures.read(4))[0]
+        offsets.append(offset)
+
+    texdefs = ''
+
+    for offset in offsets:
+        textures.seek(offset, io.SEEK_SET)
+
+        name, flags = struct.unpack('<8sH', textures.read(10))
+        name = name.rstrip('\x00')
+
+        scalex, scaley = struct.unpack('<2B', textures.read(2))
+        width, height = struct.unpack('<2H', textures.read(4))
+        columndirectory, patchcount = struct.unpack('<IH', textures.read(6))
+
+        texdefs += 'texture "{0}", {1}, {2}\r\n{{\r\n'.format(name, width, height)
+
+        if 0 != scalex:
+            texdefs += '\txscale {0}'.format(scalex / 8.0)
+
+        if 0 != scaley:
+            texdefs += '\tyscale {0}'.format(scaley / 8.0)
+
+        if 0x8000 == flags:
+            texdefs += '\tworldpanning\r\n'
+
+        if nulltex:
+            texdefs += '\tnulltexture\r\n'
+            nulltex = False
+
+        for _ in range(patchcount):
+            originx, originy, patch = struct.unpack('<3h', textures.read(6))
+            stepdir, colormap = struct.unpack('<2h', textures.read(4))
+
+            texdefs += '\tpatch "{0}", {1}, {2}\r\n'.format(patches[patch], originx, originy)
+
+        texdefs += '}\r\n\r\n'
+
+    return texdefs
+
+
+def _append_text(filename, data):
+    with open(filename, 'ab') as f:
+        f.seek(0, os.SEEK_END)
+        f.write('\r\n' * 2)
+        f.write(data)
+
+
 def _process_wad(pk3, entry, outpath):
+    def _process_textures():
+        pnames_lump = wad.find('PNAMES')
+        texture1_lump = wad.find('TEXTURE1')
+
+        if not pnames_lump and not texture1_lump:
+            return None
+
+        patches = _load_pnames(pnames_lump.data)
+        texdefs = _load_texturex(texture1_lump.data, patches, True)
+
+        wad.removelump(pnames_lump)
+        wad.removelump(texture1_lump)
+
+        texture2_lump = wad.find('TEXTURE2')
+        if texture2_lump:
+            texdefs += _load_texturex(texture2_lump.data, patches, False)
+            wad.removelump(texture2_lump)
+
+        return texdefs
+
     def _extract_lumps(subpath=''):
         path = outpath + '/'
         has_subpath = len(subpath) > 0
@@ -162,12 +252,8 @@ def _process_wad(pk3, entry, outpath):
                 if 'txt' == ext:
                     print('Info: merging content with file ' + filename)
 
-                    with open(filename, 'ab') as f:
-                        f.seek(0, os.SEEK_END)
-                        f.write('\r\n' * 2)
-                        f.write(lump.data)
+                    _append_text(filename, lump.data)
                     return
-                # TODO: merging for PNAMES and TEXTUREx
                 else:
                     print('Warning: overwriting file ' + filename)
 
@@ -187,6 +273,10 @@ def _process_wad(pk3, entry, outpath):
 
     wad_data = pk3.read(entry)
     wad = doomwad.WadFile(wad_data)
+
+    textures = _process_textures()
+    if textures:
+        _append_text(outpath + '/textures.txt', textures)
 
     for namespace in wad.namespaces():
         lumps = wad.namespacelumps(namespace)
