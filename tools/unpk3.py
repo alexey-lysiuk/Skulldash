@@ -19,13 +19,20 @@
 #
 
 import os
-import zipfile
 import sys
+import shutil
+import zipfile
 
 import doomwad
 
 
-def prepare_outdir(path):
+def _prepare_outdir(path):
+    # TODO: simplifies debugging, remove this later!
+    try:
+        shutil.rmtree(path)
+    except:
+        pass
+
     os.mkdir(path)
     os.mkdir(path + '/acs')
     os.mkdir(path + '/flats')
@@ -38,19 +45,96 @@ def prepare_outdir(path):
     os.mkdir(path + '/textures')
 
 
-def process_wad(pk3, entry, outpath):
-    def _extract_lumps(subdir='', ext='lmp'):
-        subpath = outpath + '/'
+_TEXTLUMP_NAMES = (
+    'ANIMDEFS',
+    'DECALDEF',
+    'DECORATE',
+    'GAMEINFO',
+    'GLDEFS',
+    'HIRESTEX',
+    'LOADACS',
+    'MAPINFO',
+    'SBARINFO',
+    'SNDINFO',
+    # TODO: add remaining names
+)
 
-        if len(subdir) > 0:
-            subpath += subdir + '/'
+
+def _detect_format(name, data):
+    # texts, merge-able
+    if name in _TEXTLUMP_NAMES:
+        return 'txt'
+
+    # ACS binary code
+    elif data.startswith('ACS'):
+        return 'o'
+
+    # images
+    elif '\xFF\xD8\xFF\xE0' == data[0:4] and 'JFIF' == data[6:10]:
+        return 'jpg'
+    elif data.startswith('\x89PNG'):
+        return 'png'
+
+    # music
+    elif data.startswith('MThd'):
+        return 'mid'
+    elif data.startswith('MUS'):
+        return 'mus'
+    elif data.startswith('Extended Module:'):
+        return 'xm'
+
+    # sounds
+    elif data.startswith('OggS'):
+        return 'ogg'
+    elif data.startswith('RIFF'):
+        # TODO: additional format check
+        return 'wav'
+
+    # generic lump
+    else:
+        return 'lmp'
+
+
+def _process_wad(pk3, entry, outpath):
+    def _extract_lumps(subpath=''):
+        path = outpath + '/'
+        has_subpath = len(subpath) > 0
+
+        if has_subpath:
+            path += subpath + '/'
 
         for lump in lumps:
             if lump.marker:
                 continue
 
-            with open(subpath + lump.name + '.' + ext, 'wb') as f:
-                f.write(lump.data)
+            ext = _detect_format(lump.name, lump.data)
+            filename = lump.name.lower() + '.' + ext
+
+            if has_subpath:
+                filename = path + filename
+            elif 'mid' == ext or 'mus' == ext or 'xm' == ext:
+                filename = path + 'music/' + filename
+            elif 'ogg' == ext or 'wav' == ext:
+                filename = path + 'sounds/' + filename
+            elif 'png' == ext:
+                filename = path + 'graphics/' + filename
+            else:
+                filename = path + filename
+
+            if os.path.exists(filename):
+                if 'txt' == ext:
+                    print('Info: merging content with file ' + filename)
+
+                    with open(filename, 'ab') as f:
+                        f.seek(0, os.SEEK_END)
+                        f.write('\r\n' * 2)
+                        f.write(lump.data)
+                    return
+                # TODO: merging for PNAMES and TEXTUREx
+                else:
+                    print('Warning: overwriting file ' + filename)
+
+            open(filename, 'wb').write(lump.data)
 
     def _save_map_wad():
         map_wad = doomwad.WadFile()
@@ -58,27 +142,30 @@ def process_wad(pk3, entry, outpath):
         for lump in lumps:
             map_wad.append(lump)
 
-        with open(outpath + '/maps/' + ns + '.wad', 'wb') as f:
-            map_wad.writeto(f)
+        filename = outpath + '/maps/' + namespace.lower() + '.wad'
+        if os.path.exists(filename):
+            print('Warning: overwriting already existed file ' + filename)
+
+        map_wad.writeto(open(filename, 'wb'))
 
     wad_data = pk3.read(entry)
     wad = doomwad.WadFile(wad_data)
 
-    for ns in wad.namespaces():
-        lumps = wad.namespacelumps(ns)
+    for namespace in wad.namespaces():
+        lumps = wad.namespacelumps(namespace)
 
-        if 0 == len(ns):
-            # global namespace
+        if 0 == len(namespace):  # global namespace
             _extract_lumps()
-        elif 'A_START' == ns:
-            # ACS code
-            _extract_lumps('acs', 'o')
-        elif ns.endswith('S_START'):
-            # sprites
+        elif 'A_START' == namespace:
+            _extract_lumps('acs')
+        elif 'TX_START' == namespace:
+            _extract_lumps('textures')
+        elif namespace.endswith('F_START'):
+            _extract_lumps('flats')
+        elif namespace.endswith('S_START'):
             _extract_lumps('sprites')
         # TODO: other namespaces
-        elif not ns.endswith('_START'):
-            # level
+        elif not namespace.endswith('_START'):
             _save_map_wad()
 
 
@@ -86,19 +173,19 @@ def main():
     argc = len(sys.argv)
 
     if argc < 2 or argc > 3:
-        print('Usage: {0} file.pk3 [output-path]'.format(__file__))
+        print('Usage: ' + __file__ + ' file.pk3 [output-path]')
         exit(1)
 
     inpath = sys.argv[1]
     outpath = sys.argv[2] if 3 == argc else os.path.splitext(inpath)[0]
 
     pk3 = zipfile.ZipFile(inpath)
-    prepare_outdir(outpath)
+    _prepare_outdir(outpath)
 
     for entry in pk3.infolist():
         if not entry.filename.lower().endswith('.wad'):
             continue
-        process_wad(pk3, entry, outpath)
+        _process_wad(pk3, entry, outpath)
 
 
 if __name__ == '__main__':
