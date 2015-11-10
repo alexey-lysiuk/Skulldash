@@ -158,7 +158,10 @@ def _load_texturex(data, patches, nulltex):
         textures.seek(offset, io.SEEK_SET)
 
         name, flags = struct.unpack('<8sH', textures.read(10))
-        name = name.rstrip('\x00')
+
+        nullpos = name.find('\x00')
+        if nullpos > 0:
+            name = name[0:nullpos]
 
         scalex, scaley = struct.unpack('<2B', textures.read(2))
         width, height = struct.unpack('<2H', textures.read(4))
