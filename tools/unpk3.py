@@ -142,6 +142,9 @@ def _load_pnames(data):
     return patches
 
 
+_texdefs = {}
+
+
 def _load_texturex(data, patches, nulltex):
     textures = io.BytesIO(data)
 
@@ -152,7 +155,13 @@ def _load_texturex(data, patches, nulltex):
         offset = struct.unpack('<I', textures.read(4))[0]
         offsets.append(offset)
 
-    texdefs = ''
+    # From http://zdoom.org/wiki/TEXTUREx:
+    # A single texture can be redefined by a later TEXTUREx lump,
+    # however if a texture is defined more than once in the same TEXTUREx lump,
+    # the later definitions are skipped.
+    # In other words, a texture uses its first definition in the last lump.
+
+    texdefs = {}
 
     for offset in offsets:
         textures.seek(offset, io.SEEK_SET)
@@ -167,30 +176,33 @@ def _load_texturex(data, patches, nulltex):
         width, height = struct.unpack('<2H', textures.read(4))
         columndirectory, patchcount = struct.unpack('<IH', textures.read(6))
 
-        texdefs += 'texture "{0}", {1}, {2}\r\n{{\r\n'.format(name, width, height)
+        texdef = '", {0}, {1}\r\n{{\r\n'.format(width, height)
 
         if 0 != scalex:
-            texdefs += '\txscale {0}'.format(scalex / 8.0)
+            texdef += '\txscale {0}'.format(scalex / 8.0)
 
         if 0 != scaley:
-            texdefs += '\tyscale {0}'.format(scaley / 8.0)
+            texdef += '\tyscale {0}'.format(scaley / 8.0)
 
         if 0x8000 == flags:
-            texdefs += '\tworldpanning\r\n'
+            texdef += '\tworldpanning\r\n'
 
         if nulltex:
-            texdefs += '\tnulltexture\r\n'
+            texdef += '\tnulltexture\r\n'
             nulltex = False
 
         for _ in range(patchcount):
             originx, originy, patch = struct.unpack('<3h', textures.read(6))
             stepdir, colormap = struct.unpack('<2h', textures.read(4))
 
-            texdefs += '\tpatch "{0}", {1}, {2}\r\n'.format(patches[patch], originx, originy)
+            texdef += '\tpatch "{0}", {1}, {2}\r\n'.format(patches[patch], originx, originy)
 
-        texdefs += '}\r\n\r\n'
+        texdef += '}\r\n\r\n'
 
-    return texdefs
+        if name not in texdefs:
+            texdefs[name] = texdef
+
+    _texdefs.update(texdefs)
 
 
 def _append_text(filename, data):
@@ -206,20 +218,18 @@ def _process_wad(pk3, entry, outpath):
         texture1_lump = wad.find('TEXTURE1')
 
         if not pnames_lump and not texture1_lump:
-            return None
+            return
 
         patches = _load_pnames(pnames_lump.data)
-        texdefs = _load_texturex(texture1_lump.data, patches, True)
+        _load_texturex(texture1_lump.data, patches, True)
 
         wad.removelump(pnames_lump)
         wad.removelump(texture1_lump)
 
         texture2_lump = wad.find('TEXTURE2')
         if texture2_lump:
-            texdefs += _load_texturex(texture2_lump.data, patches, False)
+            _load_texturex(texture2_lump.data, patches, False)
             wad.removelump(texture2_lump)
-
-        return texdefs
 
     def _extract_lumps(subpath=''):
         path = outpath + '/'
@@ -277,9 +287,7 @@ def _process_wad(pk3, entry, outpath):
     wad_data = pk3.read(entry)
     wad = doomwad.WadFile(wad_data)
 
-    textures = _process_textures()
-    if textures:
-        _append_text(outpath + '/textures.txt', textures)
+    _process_textures()
 
     PREFIX_TO_SUBDIR = (
         ('A', 'acs'),
@@ -304,6 +312,26 @@ def _process_wad(pk3, entry, outpath):
                     break
 
 
+def extract(filename, outpath):
+    _texdefs.clear()
+
+    pk3 = zipfile.ZipFile(filename)
+    _prepare_outdir(outpath)
+
+    for entry in pk3.infolist():
+        if not entry.filename.lower().endswith('.wad'):
+            continue
+        _process_wad(pk3, entry, outpath)
+
+    if len(_texdefs) > 0:
+        textures = ''
+
+        for name in _texdefs:
+            textures += 'texture "' + name + _texdefs[name]
+
+        _append_text(outpath + '/textures.txt', textures)
+
+
 def main():
     argc = len(sys.argv)
 
@@ -314,13 +342,7 @@ def main():
     inpath = sys.argv[1]
     outpath = sys.argv[2] if 3 == argc else os.path.splitext(inpath)[0]
 
-    pk3 = zipfile.ZipFile(inpath)
-    _prepare_outdir(outpath)
-
-    for entry in pk3.infolist():
-        if not entry.filename.lower().endswith('.wad'):
-            continue
-        _process_wad(pk3, entry, outpath)
+    extract(inpath, outpath)
 
 
 if __name__ == '__main__':
