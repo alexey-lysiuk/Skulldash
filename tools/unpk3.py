@@ -196,7 +196,7 @@ def _load_texturex(data, patches, nulltex):
 def _append_text(filename, data):
     with open(filename, 'ab') as f:
         f.seek(0, os.SEEK_END)
-        f.write('\r\n' * 2)
+        f.write('\r\n' * (2 if f.tell() > 0 else 1))
         f.write(data)
 
 
