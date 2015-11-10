@@ -1,0 +1,6 @@
+
+// [BB] For the DoomSphere / TerminatorArtifact
+mugshot "Quad", health
+{
+	ARNO0 1;
+}

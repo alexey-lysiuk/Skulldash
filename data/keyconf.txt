@@ -1,0 +1,7 @@
+
+weaponsection Zandronum
+
+addslotdefault 4 Minigun
+addslotdefault 5 GrenadeLauncher
+addslotdefault 6 Railgun
+addslotdefault 7 BFG10K

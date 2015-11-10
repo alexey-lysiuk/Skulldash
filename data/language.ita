@@ -1,0 +1,84 @@
+/* Italian strings. Contributed, but alas, I forget by who.
+ * If whoever wrote these wants credit, send me an e-mail and I'll add your name to this header. 
+ * Fixed and finished by CKeen
+ */
+
+[ita]
+
+PICKUP_MAXHEALTHBONUS = "Raccolto un max. bonus di energia.";
+PICKUP_MAXARMORBONUS = "Raccolto un max. bonus di armatura.";
+
+PICKUP_TURBOSPHERE = "Turbosfera!";
+PICKUP_ANTIGRAVBELT = "Cinghia anti gravita'! Wheee!";
+PICKUP_TIMEFREEZER = "Sfera del Tempo!";
+PICKUP_INFRAREDGOGGLES = "Occhiali a Infrarossi";
+PICKUP_INFRAREDTRACKER = "Infrared tracker";
+PICKUP_INVISIBILITY = "Invisibilita'";
+PICKUP_DOOMSPHERE = "Sfera Del Destino!";
+PICKUP_GUARDSPHERE = "Sfera-Guardia";
+PICKUP_TERMINATOR = "Terminator!";
+PICKUP_POSSESSIONSTONE = "Pietra Infernale!";
+
+PICKUP_BLUEFLAG = "HAI PRESO LA BANDIERA BLU!";
+PICKUP_BLUESKULL_ST = "HAI PRESO IL TESCHIO BLU!";
+PICKUP_REDFLAG = "HAI PRESO LA BANDIERA ROSSA!";
+PICKUP_REDSKULL_ST = "HAI PRESO IL TESCHIO ROSSO!";
+PICKUP_WHITEFLAG = "Hai preso la bandiera!";
+
+PICKUP_COOPERATIVEBACKPACK = "Raccolto uno zaino pieno di armi e munizioni!";
+
+PICKUP_STRENGTH = "Runa Forza!";
+PICKUP_RAGE = "Runa del Furore!";
+PICKUP_DRAIN = "Runa dell'Assorbimento!";
+PICKUP_SPREAD = "Runa della Propagazione!";
+PICKUP_RESISTANCE = "Runa della Resistenza!";
+PICKUP_REGENERATION = "Runa della Regenerazione!";
+PICKUP_PROSPERITY = "Runa della Prosperita'!";
+PICKUP_REFLECTION = "Runa del Riflesso!";
+PICKUP_HIGHJUMP = "Runa del Salto!";
+PICKUP_HASTE = "Runa della Velocita'!";
+
+PICKUP_PISTOL_DROPPED = "Hai trovato una pistola.";
+PICKUP_PISTOL = "Hai ripreso la tua pistola!  Meno male!";
+
+// Possession strings.
+POSSESSIONARTIFACT_PICKEDUP = "Pietra Infernale Raccolta!";
+POSSESSIONARTIFACT_DROPPED = "Pietra Infernale Persa!";
+
+// Obituary strings.
+OB_FIST_2 = "%o e' stato picchiato a sangue da %k.";
+OB_FIST_RARE = "%o e' stato molestato dai pugni di %k.";
+OB_PISTOL_RARE = "%o si e' ritrovato un proiettile nel culo, omaggio di %k.";
+OB_CHAINSAW_RARE = "%o e' stato h4kk4t0 dalla motosega di %k.";
+OB_ROCKET_GIB = "%o ha cavalcato il razzo di %k.";
+OB_ROCKET_GIB_2 = "%o e' stato liquidato dal razzo di %k.";
+OB_ROCKET_GIB_3 = "%o e' stato fatto a pezzi dal razzo di %k.";
+OB_ROCKET_GIB_4 = "%o e' stato distrutto dal razzo di %k.";
+OB_ROCKET_RARE = "%o e' stato stuprato dal razzo di %k.";
+OB_ROCKET_SELF_2 = "%o scopre lo splash damage.";
+OB_ROCKET_SELF_3 = "%o si e' fottuto da solo.";
+OB_ROCKET_SELF_RARE = "%o ha deciso di infilarsi un razzo in culo.";
+OB_GRENADE = "%o e' capitato sulla granata di %k.";
+OB_GRENADE_SPLASH = "%o e' stato stracciato dai frammenti di proiettile di %k.";
+OB_GRENADE_SELF = "%o si e' ucciso con la propria granata.";
+OB_PLASMARIFLE_RARE = "%o e' stato ownato dal plasma gun di %k.";
+OB_BFG_GIB_RARE = "%o e' stato castrato dalla grossa fottuta arma di %k.";
+
+OB_IMPALED = "%o e' stato impalato su un bastone.";
+OB_SPACE = "%o ha provato ad esplorare lo spazio.";
+OB_SELF_2 = "%o ha avuto un attacco di cuore.";
+OB_FALL_2 = "%o si e' spiaccicato come un coglione.";
+OB_EXIT_2 = "%o sembra annoiato di questo livello.";
+OB_REFLECTION = "%o e' stato ucciso per mezzo della runa del riflesso di %k.";
+
+// Medal strings. (THESE ARE NOT USED ATM).
+MEDALSTRING_EXCELLENT = "Eccellente!";
+MEDALSTRING_INCREDIBLE = "Incredibile!";
+MEDALSTRING_IMPRESSIVE = "Impressionante!";
+MEDALSTRING_MOSTIMPRESSIVE = "Più Impressionante!";
+MEDALSTRING_DOMINATION = "Dominazione!";
+MEDALSTRING_TOTALDOMINATION = "Dominazione Totale!";
+MEDALSTRING_ACCURACY = "Accuratezza!";
+MEDALSTRING_PRECISION = "Precisione!";
+MEDALSTRING_LLAMA = "Llama!";
+MEDALSTRING_YOUFAILIT = "Sei Un Fallito!";
