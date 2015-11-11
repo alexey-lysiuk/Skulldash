@@ -254,7 +254,7 @@ def _process_wad(pk3, entry, outpath):
                     print('Info: merging content with file ' + filename)
 
                     _append_text(filename, lump.data)
-                    return
+                    continue
                 else:
                     print('Warning: overwriting file ' + filename)
             else:
