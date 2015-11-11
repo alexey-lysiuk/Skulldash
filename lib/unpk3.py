@@ -22,7 +22,6 @@ import io
 import os
 import struct
 import sys
-import shutil
 import zipfile
 
 import doomwad
