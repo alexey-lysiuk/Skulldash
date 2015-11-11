@@ -51,7 +51,11 @@ def main():
     temp_archive_path = shutil.make_archive(root_path + '~skulldash~', 'zip', work_path)
     archive_path = root_path + 'skulldash_zdoom.pk3'
 
-    os.remove(archive_path)
+    try:
+        os.remove(archive_path)
+    except:
+        pass
+
     shutil.move(temp_archive_path, archive_path)
 
     shutil.rmtree(work_path, True)
