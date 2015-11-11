@@ -32,25 +32,6 @@ if sys.hexversion < 0x3000000:
     range = xrange
 
 
-def _prepare_outdir(path):
-    # TODO: simplifies debugging, remove this later!
-    try:
-        shutil.rmtree(path)
-    except:
-        pass
-
-    os.mkdir(path)
-    os.mkdir(path + '/acs')
-    os.mkdir(path + '/flats')
-    os.mkdir(path + '/graphics')
-    os.mkdir(path + '/maps')
-    os.mkdir(path + '/music')
-    os.mkdir(path + '/patches')
-    os.mkdir(path + '/sounds')
-    os.mkdir(path + '/sprites')
-    os.mkdir(path + '/textures')
-
-
 _TEXTLUMP_NAMES = (
     'ANIMDEFS',
     'DECALDEF',
@@ -212,6 +193,13 @@ def _append_text(filename, data):
         f.write(data)
 
 
+def _create_directory(filename):
+    try:
+        os.makedirs(os.path.dirname(filename))
+    except:
+        pass
+
+
 def _process_wad(pk3, entry, outpath):
     def _process_textures():
         pnames_lump = wad.find('PNAMES')
@@ -269,6 +257,8 @@ def _process_wad(pk3, entry, outpath):
                     return
                 else:
                     print('Warning: overwriting file ' + filename)
+            else:
+                _create_directory(filename)
 
             open(filename, 'wb').write(lump.data)
 
@@ -281,6 +271,8 @@ def _process_wad(pk3, entry, outpath):
         filename = outpath + '/maps/' + namespace.lower() + '.wad'
         if os.path.exists(filename):
             print('Warning: overwriting already existed file ' + filename)
+        else:
+            _create_directory(filename)
 
         map_wad.writeto(open(filename, 'wb'))
 
@@ -316,7 +308,6 @@ def extract(filename, outpath):
     _texdefs.clear()
 
     pk3 = zipfile.ZipFile(filename)
-    _prepare_outdir(outpath)
 
     for entry in pk3.infolist():
         if not entry.filename.lower().endswith('.wad'):
