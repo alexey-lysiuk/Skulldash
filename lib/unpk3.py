@@ -371,7 +371,7 @@ def extract(filename, outpath):
     if len(_texdefs) > 0:
         textures = ''
 
-        for name in _texdefs:
+        for name in sorted(_texdefs):
             textures += 'texture "' + name + _texdefs[name]
 
         _append_text(outpath + '/textures.txt', textures)
