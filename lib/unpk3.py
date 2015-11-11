@@ -100,6 +100,33 @@ def _is_doomsound(data):
         return False
 
 
+def _is_mp3(data):
+    sound = io.BytesIO(data)
+
+    try:
+        # validate header
+        # based on https://github.com/threatstack/libmagic/blob/master/magic/Magdir/animation
+        header = struct.unpack('>HB', sound.read(3))
+
+        if 0xFFFA != header[0] & 0xFFFE:
+            # wrong version
+            return False
+
+        bitrate = header[1] >> 4
+        if 0 == bitrate or 15 == bitrate:
+            # unused values, wrong bit rate
+            return False
+
+        if 0xC == header[1] & 0xC:
+            # unused value, wrong sampling rate
+            return False
+
+        return True
+
+    except:
+        return False
+
+
 def _is_doompic(data):
     pic = io.BytesIO(data)
 
@@ -249,7 +276,7 @@ def _process_wad(pk3, entry, outpath):
                 continue
 
             ext = _detect_format(lump.name, lump.data)
-            filename = lump.name.lower() + '.' + ext
+            filename = lump.name.lower()
 
             if has_subpath:
                 filename = path + filename
@@ -266,10 +293,15 @@ def _process_wad(pk3, entry, outpath):
                     # generic lump, more heuristics required
                     if _is_doomsound(lump.data):
                         format_subpath = 'sounds/'
+                    elif _is_mp3(lump.data):
+                        format_subpath = 'music/'
+                        ext = 'mp3'
                     elif _is_doompic(lump.data):
                         format_subpath = 'graphics/'
 
                 filename = path + format_subpath + filename
+
+            filename += '.' + ext
 
             if os.path.exists(filename):
                 if 'txt' == ext:
