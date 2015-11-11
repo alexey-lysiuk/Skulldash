@@ -202,28 +202,28 @@ def _load_texturex(data, patches, nulltex):
         width, height = struct.unpack('<2H', textures.read(4))
         columndirectory, patchcount = struct.unpack('<IH', textures.read(6))
 
-        texdef = '", {0}, {1}\r\n{{\r\n'.format(width, height)
+        texdef = '", {0}, {1}{2}{{{2}'.format(width, height, os.linesep)
 
         if 0 != scalex:
-            texdef += '\txscale {0}'.format(scalex / 8.0)
+            texdef += '\txscale {0}{1}'.format(scalex / 8.0, os.linesep)
 
         if 0 != scaley:
-            texdef += '\tyscale {0}'.format(scaley / 8.0)
+            texdef += '\tyscale {0}{1}'.format(scaley / 8.0, os.linesep)
 
         if 0x8000 == flags:
-            texdef += '\tworldpanning\r\n'
+            texdef += '\tworldpanning' + os.linesep
 
         if nulltex:
-            texdef += '\tnulltexture\r\n'
+            texdef += '\tnulltexture' + os.linesep
             nulltex = False
 
         for _ in range(patchcount):
             originx, originy, patch = struct.unpack('<3h', textures.read(6))
             stepdir, colormap = struct.unpack('<2h', textures.read(4))
 
-            texdef += '\tpatch "{0}", {1}, {2}\r\n'.format(patches[patch], originx, originy)
+            texdef += '\tpatch "{0}", {1}, {2}{3}'.format(patches[patch], originx, originy, os.linesep)
 
-        texdef += '}\r\n\r\n'
+        texdef += '}' + os.linesep * 2
 
         if name not in texdefs:
             texdefs[name] = texdef
@@ -234,7 +234,7 @@ def _load_texturex(data, patches, nulltex):
 def _append_text(filename, data):
     with open(filename, 'ab') as f:
         f.seek(0, os.SEEK_END)
-        f.write('\r\n' * (2 if f.tell() > 0 else 1))
+        f.write(os.linesep * (2 if f.tell() > 0 else 1))
         f.write(data)
 
 
