@@ -82,6 +82,24 @@ def _detect_format(name, data):
         return 'lmp'
 
 
+def _is_doomsound(data):
+    sound = io.BytesIO(data)
+
+    try:
+        # validate header
+        format_num, sample_rate = struct.unpack('<2H', sound.read(4))
+
+        if 3 != format_num:
+            # only PCM sound format is supported
+            return False
+
+        rates = (8000, 11025, 22050, 44100, 48000)
+        return sample_rate in rates
+
+    except:
+        return False
+
+
 def _is_doompic(data):
     pic = io.BytesIO(data)
 
@@ -244,8 +262,12 @@ def _process_wad(pk3, entry, outpath):
                     format_subpath = 'music/'
                 elif 'ogg' == ext or 'wav' == ext:
                     format_subpath = 'sounds/'
-                elif 'lmp' == ext and _is_doompic(lump.data):
-                    format_subpath = 'graphics/'
+                elif 'lmp' == ext:
+                    # generic lump, more heuristics required
+                    if _is_doomsound(lump.data):
+                        format_subpath = 'sounds/'
+                    elif _is_doompic(lump.data):
+                        format_subpath = 'graphics/'
 
                 filename = path + format_subpath + filename
 
