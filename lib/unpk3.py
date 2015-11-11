@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import inspect
 import io
 import os
 import struct
@@ -29,6 +30,21 @@ import doomwad
 
 if sys.hexversion < 0x3000000:
     range = xrange
+
+
+def _is_debugging():
+    for frame in inspect.stack():
+        if frame[1].endswith("pydevd.py") or frame[1].endswith("pdb.py"):
+            return True
+    return False
+
+
+_DEBUG = _is_debugging()
+
+
+def _dbgprint(message):
+    if _DEBUG:
+        print(message)
 
 
 _TEXTLUMP_NAMES = (
@@ -304,12 +320,12 @@ def _process_wad(pk3, entry, outpath):
 
             if os.path.exists(filename):
                 if 'txt' == ext:
-                    print('Info: merging content with file ' + filename)
+                    _dbgprint('Info: merging content with file ' + filename)
 
                     _append_text(filename, lump.data)
                     continue
                 else:
-                    print('Warning: overwriting file ' + filename)
+                    _dbgprint('Warning: overwriting file ' + filename)
             else:
                 _create_directory(filename)
 
@@ -323,7 +339,7 @@ def _process_wad(pk3, entry, outpath):
 
         filename = outpath + '/maps/' + namespace.lower() + '.wad'
         if os.path.exists(filename):
-            print('Warning: overwriting already existed file ' + filename)
+            _dbgprint('Warning: overwriting already existed file ' + filename)
         else:
             _create_directory(filename)
 
