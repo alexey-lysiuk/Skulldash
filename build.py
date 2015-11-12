@@ -34,9 +34,15 @@ import unpk3
 
 def main():
     argc = len(sys.argv)
+    standalone = True
 
-    if 2 != argc:
-        print('Usage: ' + __file__ + ' skulldash.pk3')
+    if 1 == argc:
+        print('No skulldash.pk3 specified, building add-on version...')
+        standalone = False
+    elif 2 == argc:
+        print('Building standalone version...')
+    else:
+        print('Usage: ' + __file__ + ' [skulldash.pk3]')
         exit(1)
 
     root_path = os.path.dirname(__file__)
@@ -46,10 +52,12 @@ def main():
     shutil.rmtree(work_path, True)
 
     shutil.copytree(root_path + 'data', work_path)
-    unpk3.extract(sys.argv[1], work_path)
+
+    if standalone:
+        unpk3.extract(sys.argv[1], work_path)
 
     temp_archive_path = shutil.make_archive(root_path + '~skulldash~', 'zip', work_path)
-    archive_path = root_path + 'skulldash_zdoom.pk3'
+    archive_path = '{0}skulldash_zdoom_{1}.pk3'.format(root_path, 'standalone' if standalone else 'addon')
 
     try:
         os.remove(archive_path)
