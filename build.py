@@ -68,6 +68,8 @@ def main():
 
     shutil.rmtree(work_path, True)
 
+    print('Saved to ' + archive_path)
+
 if __name__ == '__main__':
     main()
 
