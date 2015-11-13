@@ -4,10 +4,16 @@
 //
 //=================================================================================================
 
-ACTOR MaxHealth : Health native
+ACTOR MaxHealth : CustomInventory
 {
 	Inventory.MaxAmount 50
 	Inventory.PickupSound "misc/health_pkup"
+	States
+	{
+	Pickup:
+		TNT1 A 0 ACS_NamedExecuteAlways ("IncreaseMaximumHealth", 0)
+		stop
+	}
 }
 
 //=================================================================================================

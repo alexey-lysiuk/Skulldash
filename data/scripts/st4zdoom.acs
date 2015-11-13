@@ -1,0 +1,28 @@
+#library "st4zdoom"
+
+#include "zcommon.acs"
+
+script "IncreaseMaximumHealth" (void)
+{
+	int maximum = GetActorProperty(0, APROP_SpawnHealth);
+
+	if (0 == maximum)
+	{
+		maximum = 101;
+	}
+	else if (maximum < 150)
+	{
+		++maximum;
+	}
+	
+	SetActorProperty(0, APROP_SpawnHealth, maximum);
+
+	int current = GetActorProperty(0, APROP_Health);
+	
+	if (current < 250)
+	{
+		++current;
+	}
+	
+	SetActorProperty(0, APROP_Health, current);
+}
