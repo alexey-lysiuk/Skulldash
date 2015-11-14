@@ -1,5 +1,6 @@
 
 #include "actors/skulltag/skulltagarmor.txt"
+#include "actors/skulltag/skulltagartifacts.txt"
 #include "actors/skulltag/skulltaghealth.txt"
 
 #include "actors/skulltagarmor.txt"
